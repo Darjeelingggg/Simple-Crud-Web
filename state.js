@@ -4,31 +4,35 @@
  * ==========================================================================
  */
 
-// Local storage key
-const STORAGE_KEY = 'tasksphere_tasks';
-
-// Task State
+// In-memory tasks cache to keep read operations synchronous & extremely fast
 let tasks = [];
 let lastDeletedTask = null; // Cache for the Undo feature
 
 /**
- * Initialize state from localStorage
+ * Initialize state from SQLite database backend via REST API
  */
-export function init() {
+export async function init() {
     try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        tasks = stored ? JSON.parse(stored) : getSampleTasks();
-        if (!stored) {
-            saveToStorage();
+        const response = await fetch('/api/tasks');
+        if (!response.ok) throw new Error('API response was not OK');
+        tasks = await response.json();
+        
+        // If database is completely empty on first load, pre-populate with sample tasks
+        if (tasks.length === 0) {
+            console.log("Database is empty. Pre-populating with sample tasks...");
+            const samples = getSampleTasks();
+            for (const sample of samples) {
+                await addTask(sample);
+            }
         }
     } catch (e) {
-        console.error("Failed to load tasks from localStorage:", e);
+        console.error("Failed to load tasks from SQLite server, falling back to memory:", e);
         tasks = getSampleTasks();
     }
 }
 
 /**
- * Get all tasks filtered, searched, and sorted
+ * Get all tasks filtered, searched, and sorted (Synchronous from local cache)
  * @param {Object} filters
  * @param {string} filters.search - Search term
  * @param {string} filters.category - Category filter ('all' or specific)
@@ -59,19 +63,14 @@ export function getTasks({ search = '', category = 'all', priority = 'all', sort
 
     // 4. Sorting Logic
     filtered.sort((a, b) => {
-        // Handle completed sorting: uncompleted tasks always show up first or keep order?
-        // Let's sort by the selected criterion
         if (sortBy === 'dueDate') {
-            // Sort by due date (closest first). If no due date, put it last.
             if (!a.dueDate) return 1;
             if (!b.dueDate) return -1;
             return new Date(a.dueDate) - new Date(b.dueDate);
         } else if (sortBy === 'priority') {
-            // Priority weight: high = 3, medium = 2, low = 1
             const weight = { high: 3, medium: 2, low: 1 };
             return (weight[b.priority] || 0) - (weight[a.priority] || 0);
         } else {
-            // Sort by creation date (newest first)
             return new Date(b.createdAt) - new Date(a.createdAt);
         }
     });
@@ -80,77 +79,144 @@ export function getTasks({ search = '', category = 'all', priority = 'all', sort
 }
 
 /**
- * Add a new task
+ * Add a new task to SQLite server and local cache
  * @param {Object} taskData 
  */
-export function addTask({ title, description, priority, category, dueDate }) {
-    const newTask = {
-        id: 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+export async function addTask({ title, description, priority, category, dueDate, id, createdAt, completed }) {
+    const taskPayload = {
+        id,
         title: title.trim(),
         description: description ? description.trim() : '',
         priority: priority || 'medium',
         category: category ? category.trim() : 'General',
         dueDate: dueDate || '',
-        completed: false,
-        createdAt: new Date().toISOString()
+        completed: completed || false,
+        createdAt
     };
 
-    tasks.push(newTask);
-    saveToStorage();
-    return newTask;
+    try {
+        const response = await fetch('/api/tasks', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(taskPayload)
+        });
+
+        if (!response.ok) throw new Error('Failed to create task on database server');
+        const newTask = await response.json();
+
+        // Update local memory cache
+        // If it's an undo operation, make sure we don't duplicate
+        const existingIdx = tasks.findIndex(t => t.id === newTask.id);
+        if (existingIdx !== -1) {
+            tasks[existingIdx] = newTask;
+        } else {
+            tasks.push(newTask);
+        }
+        
+        return newTask;
+    } catch (e) {
+        console.error("Error adding task to database, using memory fallback:", e);
+        const fallbackTask = {
+            ...taskPayload,
+            id: taskPayload.id || 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+            createdAt: taskPayload.createdAt || new Date().toISOString()
+        };
+        tasks.push(fallbackTask);
+        return fallbackTask;
+    }
 }
 
 /**
- * Update an existing task
+ * Update an existing task in SQLite server and local cache
  * @param {string} id 
  * @param {Object} updates 
  */
-export function updateTask(id, updates) {
-    const taskIndex = tasks.findIndex(t => t.id === id);
-    if (taskIndex === -1) return null;
+export async function updateTask(id, updates) {
+    try {
+        const response = await fetch(`/api/tasks/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updates)
+        });
 
-    tasks[taskIndex] = {
-        ...tasks[taskIndex],
-        ...updates
-    };
+        if (!response.ok) throw new Error('Failed to update task on database server');
+        const updatedTask = await response.json();
 
-    saveToStorage();
-    return tasks[taskIndex];
+        // Update local memory cache
+        const taskIndex = tasks.findIndex(t => t.id === id);
+        if (taskIndex !== -1) {
+            tasks[taskIndex] = updatedTask;
+        }
+        return updatedTask;
+    } catch (e) {
+        console.error("Error updating task in database, using memory fallback:", e);
+        const taskIndex = tasks.findIndex(t => t.id === id);
+        if (taskIndex === -1) return null;
+
+        tasks[taskIndex] = {
+            ...tasks[taskIndex],
+            ...updates
+        };
+        return tasks[taskIndex];
+    }
 }
 
 /**
- * Delete a task
+ * Delete a task from SQLite server and local cache
  * @param {string} id 
  */
-export function deleteTask(id) {
-    const taskIndex = tasks.findIndex(t => t.id === id);
-    if (taskIndex === -1) return null;
+export async function deleteTask(id) {
+    try {
+        const response = await fetch(`/api/tasks/${id}`, {
+            method: 'DELETE'
+        });
 
-    // Cache for Undo
-    lastDeletedTask = { ...tasks[taskIndex] };
+        if (!response.ok) throw new Error('Failed to delete task on database server');
+        const data = await response.json();
+        
+        // Cache for Undo
+        lastDeletedTask = data.deletedTask;
 
-    tasks.splice(taskIndex, 1);
-    saveToStorage();
+        // Remove from local memory cache
+        const taskIndex = tasks.findIndex(t => t.id === id);
+        if (taskIndex !== -1) {
+            tasks.splice(taskIndex, 1);
+        }
 
-    return lastDeletedTask;
+        return lastDeletedTask;
+    } catch (e) {
+        console.error("Error deleting task in database, using memory fallback:", e);
+        const taskIndex = tasks.findIndex(t => t.id === id);
+        if (taskIndex === -1) return null;
+
+        lastDeletedTask = { ...tasks[taskIndex] };
+        tasks.splice(taskIndex, 1);
+        return lastDeletedTask;
+    }
 }
 
 /**
  * Undo last deletion
  */
-export function undoDelete() {
+export async function undoDelete() {
     if (!lastDeletedTask) return null;
 
-    tasks.push(lastDeletedTask);
-    const restored = lastDeletedTask;
-    lastDeletedTask = null; // Clear cache
-    
-    saveToStorage();
-    return restored;
+    try {
+        const restored = await addTask(lastDeletedTask);
+        lastDeletedTask = null; // Clear cache
+        return restored;
+    } catch (e) {
+        console.error("Failed to undo task deletion:", e);
+        return null;
+    }
 }
 
 /**
- * Get overall task statistics
+ * Get overall task statistics (Synchronous from local cache)
  */
 export function getStats() {
     const total = tasks.length;
@@ -162,20 +228,11 @@ export function getStats() {
 }
 
 /**
- * Get distinct categories present in all tasks
+ * Get distinct categories present in all tasks (Synchronous from local cache)
  */
 export function getCategories() {
     const cats = new Set(tasks.map(t => t.category));
     return ['General', ...Array.from(cats)].filter((v, i, self) => self.indexOf(v) === i);
-}
-
-// Helpers
-function saveToStorage() {
-    try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-    } catch (e) {
-        console.error("Failed to save tasks to localStorage:", e);
-    }
 }
 
 /**
@@ -222,3 +279,4 @@ function getSampleTasks() {
         }
     ];
 }
+

@@ -177,9 +177,9 @@ function createTaskCardDOM(task) {
 
     // 1. Toggle Completion Checkbox
     const checkbox = card.querySelector('.checkbox-input');
-    checkbox.addEventListener('change', () => {
+    checkbox.addEventListener('change', async () => {
         const completed = checkbox.checked;
-        State.updateTask(task.id, { completed });
+        await State.updateTask(task.id, { completed });
         
         // Visual class toggling for immediate feedback
         if (completed) {
@@ -210,8 +210,8 @@ function createTaskCardDOM(task) {
         card.classList.add('task-leave');
         
         // Wait for animation to end
-        card.addEventListener('animationend', () => {
-            const deleted = State.deleteTask(task.id);
+        card.addEventListener('animationend', async () => {
+            const deleted = await State.deleteTask(task.id);
             if (deleted) {
                 showToast(`Tugas "${deleted.title}" dihapus.`, 'success', true);
             }
@@ -268,7 +268,7 @@ export function closeModal() {
 /**
  * Handle form submission for task creation and updates
  */
-export function handleFormSubmit(e) {
+export async function handleFormSubmit(e) {
     e.preventDefault();
 
     const title = formTitle.value.trim();
@@ -287,7 +287,7 @@ export function handleFormSubmit(e) {
 
     if (taskId) {
         // Update Action
-        const updated = State.updateTask(taskId, {
+        const updated = await State.updateTask(taskId, {
             title,
             description,
             category,
@@ -299,7 +299,7 @@ export function handleFormSubmit(e) {
         }
     } else {
         // Create Action
-        State.addTask({
+        await State.addTask({
             title,
             description,
             category,
@@ -383,8 +383,8 @@ export function showToast(message, type = 'success', showUndo = false) {
     // Register Undo Button event
     if (showUndo) {
         const undoBtn = toast.querySelector('#toast-undo');
-        undoBtn.addEventListener('click', () => {
-            const restored = State.undoDelete();
+        undoBtn.addEventListener('click', async () => {
+            const restored = await State.undoDelete();
             if (restored) {
                 showToast(`Tugas "${restored.title}" berhasil dipulihkan!`, 'success');
                 onTaskChangeCallback();
