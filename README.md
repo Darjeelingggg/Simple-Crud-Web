@@ -1,16 +1,16 @@
 # TaskSphere — Premium Task & Project CRUD Manager
 
-TaskSphere adalah aplikasi manajemen tugas (To-Do List) dan proyek pribadi dengan tampilan modern premium yang mengusung gaya **Glassmorphism**, palet warna **HSL kustom**, **real-time dashboard stats**, serta didukung oleh backend **Express.js** dan database relasional **SQLite**.
+## 1.3 Deskripsi Aplikasi
 
----
+Aplikasi TaskSphere ini berfungsi sebagai pengelola tugas (task manager) premium daring yang memungkinkan pengguna untuk mengirimkan (membuat), melihat, memperbarui (mengedit), dan menghapus tugas secara interaktif tanpa perlu melakukan proses autentikasi atau pendaftaran akun terlebih dahulu. Aplikasi ini mengusung gaya modern Glassmorphism dengan palet warna HSL kustom dan dashboard statistik real-time untuk meningkatkan pengalaman pengguna (UX) dalam mengelola rencana mereka secara visual.
 
-## 📝 Latar Belakang Proyek
+Link: https://github.com/Darjeelingggg/Simple-Crud-Web
 
-Di era digital yang serba cepat, pengelolaan waktu dan produktivitas menjadi kunci utama dalam mencapai keberhasilan. Banyak aplikasi pengelola tugas (to-do list) di luar sana yang fungsional, tetapi sering kali mengabaikan aspek estetika dan pengalaman pengguna (*User Experience* / UX) yang menyenangkan. Tampilan yang monoton dapat menurunkan motivasi pengguna dalam mengelola rencana mereka.
+Teknologi yang Digunakan:
 
-**TaskSphere** lahir sebagai solusi untuk menjembatani fungsionalitas manajemen tugas yang andal dengan **desain visual kelas atas (premium)**. Proyek ini awalnya dirancang sebagai aplikasi client-side murni berbasis `localStorage`. Namun, seiring dengan kebutuhan akan persistensi data yang lebih aman, terpusat, dan andal, proyek ini ditingkatkan dengan mengintegrasikan server backend modern berbasis **Node.js/Express** dan database relasional **SQLite**.
-
-Dengan TaskSphere, mengelola tugas harian bukan lagi sebuah rutinitas yang membosankan, melainkan sebuah pengalaman interaktif yang memanjakan mata melalui efek transisi halus, mode gelap (*dark-mode*) yang elegan, dan kontrol penyaringan tugas yang sangat dinamis.
+*   **Frontend:** HTML5 Semantik, Vanilla CSS3 (Custom styling untuk tata letak halaman kustom, glassmorphic backdrop, priority badges, stats panel, dialog modal, notifikasi toast, dan animasi transisi kustom), dan Vanilla JavaScript (ES Modules untuk render DOM dinamis, dynamic stats, pencarian dengan debounce, filter kategori dinamis, dan sinkronisasi cache memori frontend).
+*   **Backend:** PHP Native (Memproses operasi API RESTful asinkron di latar belakang untuk penambahan, pembacaan, pembaruan, dan penghapusan tugas/CRUD secara murni tanpa framework).
+*   **Database:** SQLite (Menggunakan PDO / PHP Data Objects di PHP untuk mengelola koneksi database secara aman dengan struktur tabel bernama `tasks` yang menyimpan kolom `id`, `title`, `description`, `priority`, `category`, `dueDate`, `completed`, dan `createdAt`).
 
 ---
 
