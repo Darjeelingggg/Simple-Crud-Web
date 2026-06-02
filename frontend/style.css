@@ -951,3 +951,35 @@ main {
         width: 100%;
     }
 }
+
+/* Database Warning Banner */
+.db-warning-banner {
+    max-width: 1200px;
+    margin: 1.5rem auto 0 auto;
+    padding: 1rem 1.5rem;
+    background: rgba(234, 84, 85, 0.1);
+    border: 1px solid rgba(234, 84, 85, 0.25);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    backdrop-filter: var(--glass-blur);
+    animation: task-slide-up 0.4s ease forwards;
+}
+
+.warning-icon {
+    font-size: 1.5rem;
+}
+
+.warning-text-container h4 {
+    color: #ea5455;
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 0.15rem;
+}
+
+.warning-text-container p {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.4;
+}

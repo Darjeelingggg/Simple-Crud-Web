@@ -8,21 +8,25 @@
 let tasks = [];
 let lastDeletedTask = null; // Cache for the Undo feature
 
+export let dbError = null;
+
 /**
  * Initialize state from MySQL database backend via REST API
  */
 export async function init() {
     try {
         const response = await fetch('../backend/api.php');
-        if (!response.ok) throw new Error('API response was not OK');
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error || 'Gagal memuat tugas dari server.');
+        }
         tasks = await response.json();
-        
-        // REVISION: Empty state auto-population has been completely removed.
-        // If the task list is empty in the database, it remains empty on load/refresh.
+        dbError = null;
         console.log("Loaded tasks from MySQL database successfully.");
     } catch (e) {
-        console.error("Failed to load tasks from MySQL server, falling back to memory:", e);
-        tasks = getSampleTasks(); // Fallback tasks only shown on connection failure
+        console.error("Failed to load tasks from MySQL server:", e);
+        dbError = e.message;
+        tasks = []; // Reset tasks so it doesn't show old mock tasks when DB fails
     }
 }
 

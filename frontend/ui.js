@@ -51,6 +51,20 @@ export function registerOnTaskChange(callback) {
  * Render all tasks to the DOM
  */
 export function render() {
+    // Render Database Connection Warning Banner if exists
+    const dbWarningBanner = document.getElementById('db-warning-banner');
+    const dbWarningMessage = document.getElementById('db-warning-message');
+    
+    if (dbWarningBanner && dbWarningMessage) {
+        const dbError = State.dbError;
+        if (dbError) {
+            dbWarningMessage.textContent = `Error: ${dbError}. Silakan pastikan XAMPP Anda aktif dan service MySQL sudah di-Start.`;
+            dbWarningBanner.style.display = 'flex';
+        } else {
+            dbWarningBanner.style.display = 'none';
+        }
+    }
+
     // 1. Get current filter options
     const filters = {
         search: searchInput.value,
