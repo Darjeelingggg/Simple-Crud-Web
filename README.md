@@ -43,16 +43,16 @@ Dengan TaskSphere, mengelola tugas harian bukan lagi sebuah rutinitas yang membo
     *   **Gaya (Styling):** Vanilla CSS3 dengan arsitektur variabel HSL, blur kaca (*glassmorphic backdrop*), efek cahaya neon, dan animasi kustom.
     *   **Logika:** Vanilla Javascript (ES Modules / JS Modern) terbagi menjadi `app.js` (entry point), `state.js` (state manager), dan `ui.js` (render DOM).
 *   **Backend & Database:**
-    *   **Runtime:** Node.js (v22.x+)
-    *   **Web Framework:** Express.js (RESTful API kustom)
-    *   **Database:** SQLite3 (`database.sqlite`)
+    *   **Runtime:** PHP (v8.0 atau yang lebih baru)
+    *   **Web Server / Framework:** Built-in PHP Development Server (Murni Native PHP tanpa Framework / Tanpa Laravel)
+    *   **Database:** SQLite melalui PDO (PHP Data Objects) — sangat mudah diganti ke MySQL.
 
 ---
 
 ## 🚀 Cara Menjalankan Aplikasi di Komputer Anda
 
 ### 1. Prasyarat
-Pastikan Anda sudah menginstal [Node.js](https://nodejs.org/) (versi 18 ke atas) di komputer Anda.
+Pastikan Anda sudah menginstal **PHP** (versi 8.0 ke atas) di komputer Anda.
 
 ### 2. Kloning Repositori
 ```bash
@@ -60,21 +60,16 @@ git clone https://github.com/Darjeelingggg/Simple-Crud-Web.git
 cd Simple-Crud-Web
 ```
 
-### 3. Instal Dependensi
-Unduh paket server Express dan driver SQLite dengan menjalankan:
+### 3. Mulai Server & Database
+Jalankan server PHP bawaan melalui terminal di folder proyek dengan perintah berikut:
 ```bash
-npm install
+php -S localhost:8000
 ```
+*(Database `database.sqlite` dan struktur tabel akan diinisialisasi secara otomatis saat server dinyalakan pertama kali).*
 
-### 4. Mulai Server & Database
-Jalankan perintah tunggal berikut untuk menyalakan database dan server:
-```bash
-npm start
-```
-
-### 5. Buka di Browser
+### 4. Buka di Browser
 Buka browser favorit Anda dan kunjungi:
-👉 **[http://localhost:3000](http://localhost:3000)**
+👉 **[http://localhost:8000](http://localhost:8000)**
 
 ---
 

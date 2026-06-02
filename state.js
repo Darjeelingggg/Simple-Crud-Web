@@ -13,7 +13,7 @@ let lastDeletedTask = null; // Cache for the Undo feature
  */
 export async function init() {
     try {
-        const response = await fetch('/api/tasks');
+        const response = await fetch('api.php');
         if (!response.ok) throw new Error('API response was not OK');
         tasks = await response.json();
         
@@ -95,7 +95,7 @@ export async function addTask({ title, description, priority, category, dueDate,
     };
 
     try {
-        const response = await fetch('/api/tasks', {
+        const response = await fetch('api.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -135,7 +135,7 @@ export async function addTask({ title, description, priority, category, dueDate,
  */
 export async function updateTask(id, updates) {
     try {
-        const response = await fetch(`/api/tasks/${id}`, {
+        const response = await fetch(`api.php?id=${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -171,7 +171,7 @@ export async function updateTask(id, updates) {
  */
 export async function deleteTask(id) {
     try {
-        const response = await fetch(`/api/tasks/${id}`, {
+        const response = await fetch(`api.php?id=${id}`, {
             method: 'DELETE'
         });
 
