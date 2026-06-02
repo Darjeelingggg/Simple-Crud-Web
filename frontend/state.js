@@ -9,25 +9,20 @@ let tasks = [];
 let lastDeletedTask = null; // Cache for the Undo feature
 
 /**
- * Initialize state from SQLite database backend via REST API
+ * Initialize state from MySQL database backend via REST API
  */
 export async function init() {
     try {
-        const response = await fetch('api.php');
+        const response = await fetch('../backend/api.php');
         if (!response.ok) throw new Error('API response was not OK');
         tasks = await response.json();
         
-        // If database is completely empty on first load, pre-populate with sample tasks
-        if (tasks.length === 0) {
-            console.log("Database is empty. Pre-populating with sample tasks...");
-            const samples = getSampleTasks();
-            for (const sample of samples) {
-                await addTask(sample);
-            }
-        }
+        // REVISION: Empty state auto-population has been completely removed.
+        // If the task list is empty in the database, it remains empty on load/refresh.
+        console.log("Loaded tasks from MySQL database successfully.");
     } catch (e) {
-        console.error("Failed to load tasks from SQLite server, falling back to memory:", e);
-        tasks = getSampleTasks();
+        console.error("Failed to load tasks from MySQL server, falling back to memory:", e);
+        tasks = getSampleTasks(); // Fallback tasks only shown on connection failure
     }
 }
 
@@ -79,7 +74,7 @@ export function getTasks({ search = '', category = 'all', priority = 'all', sort
 }
 
 /**
- * Add a new task to SQLite server and local cache
+ * Add a new task to MySQL server and local cache
  * @param {Object} taskData 
  */
 export async function addTask({ title, description, priority, category, dueDate, id, createdAt, completed }) {
@@ -95,7 +90,7 @@ export async function addTask({ title, description, priority, category, dueDate,
     };
 
     try {
-        const response = await fetch('api.php', {
+        const response = await fetch('../backend/api.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -107,7 +102,6 @@ export async function addTask({ title, description, priority, category, dueDate,
         const newTask = await response.json();
 
         // Update local memory cache
-        // If it's an undo operation, make sure we don't duplicate
         const existingIdx = tasks.findIndex(t => t.id === newTask.id);
         if (existingIdx !== -1) {
             tasks[existingIdx] = newTask;
@@ -129,13 +123,13 @@ export async function addTask({ title, description, priority, category, dueDate,
 }
 
 /**
- * Update an existing task in SQLite server and local cache
+ * Update an existing task in MySQL server and local cache
  * @param {string} id 
  * @param {Object} updates 
  */
 export async function updateTask(id, updates) {
     try {
-        const response = await fetch(`api.php?id=${id}`, {
+        const response = await fetch(`../backend/api.php?id=${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -166,12 +160,12 @@ export async function updateTask(id, updates) {
 }
 
 /**
- * Delete a task from SQLite server and local cache
+ * Delete a task from MySQL server and local cache
  * @param {string} id 
  */
 export async function deleteTask(id) {
     try {
-        const response = await fetch(`api.php?id=${id}`, {
+        const response = await fetch(`../backend/api.php?id=${id}`, {
             method: 'DELETE'
         });
 
@@ -236,7 +230,7 @@ export function getCategories() {
 }
 
 /**
- * Sample initial data for wow factor on first load
+ * Sample initial data for connection failures
  */
 function getSampleTasks() {
     const today = new Date();
@@ -279,4 +273,3 @@ function getSampleTasks() {
         }
     ];
 }
-

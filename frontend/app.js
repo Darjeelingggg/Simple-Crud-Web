@@ -8,7 +8,7 @@ import * as State from './state.js';
 import * as UI from './ui.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Initialize State (loads sample tasks if database is empty)
+    // 1. Initialize State
     await State.init();
 
     // 2. Register UI Task change handler so that UI re-renders on state mutations

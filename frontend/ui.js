@@ -78,10 +78,6 @@ export function render() {
 
     emptyState.style.display = 'none';
 
-    // Keep track of existing DOM elements to avoid redrawing elements that did not change,
-    // which helps maintain animation state. However, for simplicity and smooth listing,
-    // we can clear and redraw, giving new elements a subtle slide-in animation.
-    
     // Clear old cards (but keep empty state element)
     const existingCards = tasksContainer.querySelectorAll('.task-card');
     existingCards.forEach(card => card.remove());
@@ -173,15 +169,12 @@ function createTaskCardDOM(task) {
         </div>
     `;
 
-    // --- EVENT LISTENERS FOR CARD CONTROLS ---
-
     // 1. Toggle Completion Checkbox
     const checkbox = card.querySelector('.checkbox-input');
     checkbox.addEventListener('change', async () => {
         const completed = checkbox.checked;
         await State.updateTask(task.id, { completed });
         
-        // Visual class toggling for immediate feedback
         if (completed) {
             card.classList.add('completed');
             showToast('Tugas diselesaikan!', 'success');
@@ -190,7 +183,6 @@ function createTaskCardDOM(task) {
             showToast('Tugas diaktifkan kembali.', 'success');
         }
         
-        // Small delay to let user see transition before full redraw
         setTimeout(() => {
             onTaskChangeCallback();
         }, 300);
@@ -205,11 +197,9 @@ function createTaskCardDOM(task) {
     // 3. Delete Task Button (with Slide-out Animation & Toast Undo)
     const deleteBtn = card.querySelector('.btn-icon.delete');
     deleteBtn.addEventListener('click', () => {
-        // Trigger leave animation first
         card.classList.remove('task-enter');
         card.classList.add('task-leave');
         
-        // Wait for animation to end
         card.addEventListener('animationend', async () => {
             const deleted = await State.deleteTask(task.id);
             if (deleted) {
@@ -230,7 +220,6 @@ export function openModal(taskToEdit = null) {
     taskForm.reset();
     
     if (taskToEdit) {
-        // Edit Mode
         modalTitleElement.textContent = 'Edit Detail Tugas';
         modalSubmitBtn.textContent = 'Simpan Perubahan';
         
@@ -241,12 +230,10 @@ export function openModal(taskToEdit = null) {
         formPriority.value = taskToEdit.priority;
         formDueDate.value = taskToEdit.dueDate;
     } else {
-        // Create Mode
         modalTitleElement.textContent = 'Tambah Tugas Baru';
         modalSubmitBtn.textContent = 'Simpan Tugas';
         
         formTaskId.value = '';
-        // Set default category to 'General' and due date to today
         formCategory.value = 'General';
         formPriority.value = 'medium';
         
@@ -278,7 +265,6 @@ export async function handleFormSubmit(e) {
     const dueDate = formDueDate.value;
     const taskId = formTaskId.value;
 
-    // Validation
     if (!title) {
         showToast('Judul tugas wajib diisi!', 'error');
         formTitle.focus();
@@ -286,7 +272,6 @@ export async function handleFormSubmit(e) {
     }
 
     if (taskId) {
-        // Update Action
         const updated = await State.updateTask(taskId, {
             title,
             description,
@@ -298,7 +283,6 @@ export async function handleFormSubmit(e) {
             showToast('Tugas berhasil diperbarui!', 'success');
         }
     } else {
-        // Create Action
         await State.addTask({
             title,
             description,
@@ -329,11 +313,8 @@ function updateStatsDashboard() {
  */
 function updateCategoryDropdowns() {
     const categories = State.getCategories();
-    
-    // Save current selection value
     const currentFilterVal = filterCategory.value;
 
-    // 1. Populate search filter category dropdown
     filterCategory.innerHTML = '<option value="all">Semua Kategori</option>';
     categories.forEach(cat => {
         const option = document.createElement('option');
@@ -342,14 +323,12 @@ function updateCategoryDropdowns() {
         filterCategory.appendChild(option);
     });
 
-    // Reapply filter value if still exists
     if (Array.from(filterCategory.options).some(opt => opt.value === currentFilterVal)) {
         filterCategory.value = currentFilterVal;
     } else {
         filterCategory.value = 'all';
     }
 
-    // 2. Populate input datalist helper inside modal form
     categoriesDatalist.innerHTML = '';
     categories.forEach(cat => {
         const option = document.createElement('option');
@@ -380,7 +359,6 @@ export function showToast(message, type = 'success', showUndo = false) {
 
     toastContainer.appendChild(toast);
 
-    // Register Undo Button event
     if (showUndo) {
         const undoBtn = toast.querySelector('#toast-undo');
         undoBtn.addEventListener('click', async () => {
@@ -389,13 +367,11 @@ export function showToast(message, type = 'success', showUndo = false) {
                 showToast(`Tugas "${restored.title}" berhasil dipulihkan!`, 'success');
                 onTaskChangeCallback();
             }
-            // Auto fade out current toast
             toast.classList.add('fade-out');
             setTimeout(() => toast.remove(), 300);
         });
     }
 
-    // Auto-remove after 4 seconds
     setTimeout(() => {
         if (toast.parentNode) {
             toast.classList.add('fade-out');
