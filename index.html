@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TaskSphere adalah aplikasi web CRUD premium untuk mengelola tugas dan proyek pribadi Anda dengan tampilan dark-mode yang elegan, glassmorphism, dan persistensi data localStorage.">
+    <title>TaskSphere — Premium Task & Project CRUD Manager</title>
+    <!-- Link to external premium stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Header Section with Brand Logo and Real-time Dashboard Stats -->
+    <header>
+        <div class="header-container">
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <!-- Modern SVG Logo icon representing spheres and structure -->
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2.5" fill="none" opacity="0.4"/>
+                        <circle cx="12" cy="12" r="6" stroke="white" stroke-width="2.5" fill="none"/>
+                        <circle cx="12" cy="12" r="2" fill="white"/>
+                    </svg>
+                </div>
+                <h1 class="logo-text">TaskSphere</h1>
+            </div>
+
+            <!-- Dashboard Stats Widget -->
+            <div class="stats-panel" id="stats-panel" aria-label="Statistik Proyek">
+                <div class="stat-item">
+                    <span class="stat-label">Aktif</span>
+                    <span class="stat-value" id="stat-active">0</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-label">Selesai</span>
+                    <span class="stat-value" id="stat-completed">0</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="progress-container">
+                        <span class="stat-label" id="stat-percent-label">Progres: 0%</span>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="stat-progress-bar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main>
+        <!-- Control Center: Search, Filters, and Sorting -->
+        <section class="controls-card" aria-label="Kontrol Tugas">
+            <div class="controls-row-top">
+                <div class="search-box">
+                    <input type="text" id="search-input" class="search-input" placeholder="Cari judul tugas atau deskripsi..." aria-label="Cari tugas">
+                    <span class="search-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </span>
+                </div>
+                <button type="button" id="btn-add-task" class="btn-primary" aria-haspopup="dialog">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Tambah Tugas
+                </button>
+            </div>
+
+            <div class="controls-row-bottom">
+                <div class="filter-group">
+                    <label for="filter-category" class="filter-label">Kategori</label>
+                    <select id="filter-category" class="custom-select">
+                        <option value="all">Semua Kategori</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="filter-priority" class="filter-label">Prioritas</label>
+                    <select id="filter-priority" class="custom-select">
+                        <option value="all">Semua Prioritas</option>
+                        <option value="high">Tinggi</option>
+                        <option value="medium">Sedang</option>
+                        <option value="low">Rendah</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="sort-by" class="filter-label">Urutkan</label>
+                    <select id="sort-by" class="custom-select">
+                        <option value="dueDate">Tenggat Waktu</option>
+                        <option value="priority">Prioritas Tertinggi</option>
+                        <option value="createdAt">Terbaru Dibuat</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tasks Display Grid -->
+        <section id="tasks-container" class="tasks-grid" aria-label="Daftar Tugas">
+            <!-- Dynamic task cards will be rendered here via JS -->
+            
+            <!-- Fallback Empty State (Hidden when tasks are present) -->
+            <div class="empty-state" id="empty-state" style="display: none;">
+                <div class="empty-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="9" y1="15" x2="15" y2="15"></line>
+                        <line x1="9" y1="12" x2="15" y2="12"></line>
+                        <line x1="9" y1="9" x2="10" y2="9"></line>
+                    </svg>
+                </div>
+                <h3 class="empty-title">Belum Ada Tugas</h3>
+                <p class="empty-subtitle">Klik "+ Tambah Tugas" di atas untuk membuat tugas pertama Anda di TaskSphere.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Task Form Dialog Overlay (Popup) -->
+    <div id="task-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title" class="modal-title">Tambah Tugas Baru</h2>
+                <button type="button" class="modal-close" id="modal-btn-close" aria-label="Tutup Dialog">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Custom HTML5 Validated Form -->
+            <form id="task-form" autocomplete="off" novalidate>
+                <!-- Hidden inputs for Task ID (for edit operation) -->
+                <input type="hidden" id="form-task-id">
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label for="form-title" class="form-label">Judul Tugas *</label>
+                    <input type="text" id="form-title" class="form-input" placeholder="Masukkan judul tugas..." required maxLength="80">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label for="form-description" class="form-label">Deskripsi</label>
+                    <textarea id="form-description" class="form-textarea" placeholder="Detail tentang tugas ini..." maxLength="300"></textarea>
+                </div>
+
+                <div class="form-row" style="margin-bottom: 1.5rem;">
+                    <div class="form-group">
+                        <label for="form-category" class="form-label">Kategori</label>
+                        <!-- List for categories with option to write new custom category directly -->
+                        <input type="text" id="form-category" class="form-input" list="categories-list" placeholder="Kerja, Pribadi, Belanja..." maxLength="20">
+                        <datalist id="categories-list">
+                            <option value="Kerja"></option>
+                            <option value="Pribadi"></option>
+                            <option value="Belanja"></option>
+                            <option value="Edukasi"></option>
+                        </datalist>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="form-priority" class="form-label">Prioritas</label>
+                        <select id="form-priority" class="custom-select" style="width: 100%; border-radius: var(--radius-md); padding: 0.8rem 2rem 0.8rem 1rem;">
+                            <option value="low">Rendah (Low)</option>
+                            <option value="medium" selected>Sedang (Medium)</option>
+                            <option value="high">Tinggi (High)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 2rem;">
+                    <label for="form-due-date" class="form-label">Tenggat Waktu</label>
+                    <input type="date" id="form-due-date" class="form-input">
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" id="modal-btn-cancel" class="btn-secondary">Batal</button>
+                    <button type="submit" id="modal-btn-submit" class="btn-primary">Simpan Tugas</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite">
+        <!-- Notifikasi dinamis akan dimunculkan di sini -->
+    </div>
+
+    <!-- Web Application Logic Entry -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
